@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Math Homework</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: #000;
+            margin: 0;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            font-family: 'Orbitron', sans-serif;
+            user-select: none;
+        }
+        
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        #ui-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+        }
+
+        #speed-box {
+            position: absolute;
+            top: 20px; left: 20px;
+            font-size: 32px;
+            color: #0ff;
+            background: rgba(0, 255, 255, 0.1);
+            padding: 10px 20px;
+            border: 2px solid #0ff;
+            transform: skew(-15deg);
+            box-shadow: 0 0 15px #0ff;
+            text-shadow: 0 0 5px #fff;
+        }
+
+        #score-box {
+            position: absolute;
+            top: 20px; right: 20px;
+            text-align: right;
+            transform: skew(15deg);
+        }
+
+        .score-panel {
+            background: rgba(255, 0, 255, 0.1);
+            border: 2px solid #f0f;
+            padding: 10px 20px;
+            margin-bottom: 5px;
+            box-shadow: 0 0 15px #f0f;
+        }
+
+        #score-value {
+            font-size: 32px;
+            color: #f0f;
+            text-shadow: 0 0 5px #fff;
+        }
+
+        #high-score {
+            font-size: 14px;
+            color: #aaa;
+            letter-spacing: 2px;
+        }
+
+        #drift-indicator {
+            position: absolute;
+            top: 80px; left: 20px;
+            font-size: 20px;
+            color: #ff0055;
+            background: rgba(50, 0, 20, 0.6);
+            padding: 5px 15px;
+            border: 2px solid #ff0055;
+            transform: skew(-15deg);
+            display: none; 
+            text-shadow: 0 0 10px #ff0055;
+            box-shadow: 0 0 20px rgba(255, 0, 85, 0.4);
+            animation: pulse 0.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        #start-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 10;
+            backdrop-filter: blur(5px);
+        }
+        
+        h1 { 
+            margin: 0; 
+            font-size: 8vw; 
+            color: #f0f; 
+            text-shadow: 0 0 30px #f0f, 0 0 60px #f0f; 
+            transform: skew(-10deg); 
+            margin-bottom: 20px;
+            animation: glow 2s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { text-shadow: 0 0 30px #f0f, 0 0 60px #f0f; }
+            50% { text-shadow: 0 0 40px #f0f, 0 0 80px #f0f, 0 0 100px #f0f; }
+        }
+        
+        .menu-title {
+            font-size: 24px; 
+            color: #0ff; 
+            margin-bottom: 40px; 
+            letter-spacing: 4px;
+        }
+
+        .btn-container {
+            display: flex;
+            gap: 30px;
+        }
+
+        .btn {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 28px;
+            padding: 20px 50px;
+            border: 3px solid #fff;
+            color: #fff;
+            background: rgba(0,0,0,0.5);
+            cursor: pointer;
+            transform: skew(-15deg);
+            transition: all 0.3s ease;
+            text-shadow: 0 0 5px #fff;
+            pointer-events: all;
+        }
+
+        .btn:hover {
+            transform: skew(-15deg) scale(1.15) translateY(-5px);
+        }
+
+        .btn-easy { 
+            border-color: #0f0; 
+            color: #0f0; 
+            box-shadow: 0 0 15px #0f0; 
+        }
+        
+        .btn-normal { 
+            border-color: #ff0; 
+            color: #ff0; 
+            box-shadow: 0 0 15px #ff0; 
+        }
+
+        .btn-easy:hover { 
+            background: rgba(0, 255, 0, 0.3); 
+            box-shadow: 0 0 30px #0f0;
+        }
+        
+        .btn-normal:hover { 
+            background: rgba(255, 255, 0, 0.3); 
+            box-shadow: 0 0 30px #ff0;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="gameCanvas"></canvas>
+    
+    <div id="ui-layer">
+        <div id="speed-box">0 <span style="font-size:16px">KM/H</span></div>
+        
+        <div id="score-box">
+            <div class="score-panel">
+                <div id="score-value">0</div>
+                <div style="font-size:10px; color:#f0f">SCORE</div>
+            </div>
+            <div id="high-score">HIGH: 0</div>
+        </div>
+
+        <div id="drift-indicator">DRIFT BONUS X5!</div>
+    </div>
+
+    <div id="start-screen">
+        <h1>NEON VELOCITY</h1>
+        <div class="menu-title">SELECT DIFFICULTY</div>
+        
+        <div class="btn-container">
+            <div class="btn btn-easy" onclick="startGame('easy')">EASY</div>
+            <div class="btn btn-normal" onclick="startGame('normal')">NORMAL</div>
+        </div>
+        
+        <div style="margin-top: 50px; font-size: 16px; color: #aaa;">
+            ⬅️ ➡️ Steer | ⬆️ Accelerate | ⬇️ Brake | SPACE Drift
+        </div>
+    </div>
+
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d', { alpha: false });
+    const speedBox = document.getElementById('speed-box');
+    const scoreValBox = document.getElementById('score-value');
+    const highScoreBox = document.getElementById('high-score');
+    const driftBox = document.getElementById('drift-indicator');
+    const startScreen = document.getElementById('start-screen');
+
+    let isPlaying = false;
+    let width, height;
+
+    function resize() {
+        width = window.innerWidth;
+        height = window.innerHeight;
+        canvas.width = width;
+        canvas.height = height;
+    }
+    window.addEventListener('resize', resize);
+    resize(); 
+
+    const ROAD_WIDTH = 2000;
+    const SEGMENT_LENGTH = 200;
+    const DRAW_DISTANCE = 400; 
+    const FIELD_OF_VIEW = 100;
+    const CAMERA_DEPTH = 1 / Math.tan((FIELD_OF_VIEW / 2) * Math.PI / 180);
+    const CAMERA_HEIGHT = 1000; 
+    
+    const MAX_SPEED = 12000; 
+    const ACCEL = MAX_SPEED / 50;      
+    const BREAKING = -MAX_SPEED / 20;
+    const DECEL = -MAX_SPEED / 150;
+    const OFF_ROAD_DECEL = -MAX_SPEED / 10; 
+
+    let position = 0;
+    let playerX = 0;
+    let speed = 0;
+    let carAngle = 0; 
+    let carTilt = 0;
+    let carBounce = 0;
+    let cameraBank = 0; 
+    let lines = [];
+    let smokeParticles = [];
+    let score = 0;
+    let highScore = localStorage.getItem('neonRacerHighScore') || 0;
+    highScoreBox.innerText = "HIGH: " + Math.floor(highScore);
+    
+    const keys = { left: false, right: false, up: false, down: false, drift: false };
+
+    window.addEventListener('keydown', (e) => {
+        if (!isPlaying) return;
+        switch(e.key) {
+            case 'ArrowLeft': keys.left = true; break;
+            case 'ArrowRight': keys.right = true; break;
+            case 'ArrowUp': keys.up = true; break;
+            case 'ArrowDown': keys.down = true; break;
+            case ' ': keys.drift = true; e.preventDefault(); break;
+        }
+    });
+
+    window.addEventListener('keyup', (e) => {
+        switch(e.key) {
+            case 'ArrowLeft': keys.left = false; break;
+            case 'ArrowRight': keys.right = false; break;
+            case 'ArrowUp': keys.up = false; break;
+            case 'ArrowDown': keys.down = false; break;
+            case ' ': keys.drift = false; e.preventDefault(); break;
+        }
+    });
+
+    const SETTINGS = {
+        easy:   { curveMax: 2,  bankMax: 0.08, hillMax: 15 },
+        normal: { curveMax: 5,  bankMax: 0.25, hillMax: 40 }
+    };
+
+    function startGame(difficulty) {
+        startScreen.style.display = 'none';
+        lines = [];
+        score = 0;
+        speed = 0;
+        playerX = 0;
+        position = 0;
+        cameraBank = 0;
+        carAngle = 0;
+        carTilt = 0;
+        carBounce = 0;
+        smokeParticles = [];
+        buildTrack(SETTINGS[difficulty]);
+        isPlaying = true;
+        lastTime = performance.now();
+        requestAnimationFrame(loop);
+    }
+
+    function addLine() {
+        lines.push({
+            x: 0, 
+            y: (lines.length === 0) ? 0 : lines[lines.length-1].y, 
+            z: lines.length * SEGMENT_LENGTH,
+            curve: 0,
+            bank: 0, 
+            scale: 0, 
+            screen: {x:0, y:0, w:0}
+        });
+    }
+
+    function easeInOut(a, b, percent) {
+        return a + (b - a) * ((-Math.cos(percent * Math.PI) / 2) + 0.5);
+    }
+
+    function addRoad(enter, hold, leave, curve, maxBank, deltaY) {
+        let startY = lines.length > 0 ? lines[lines.length-1].y : 0;
+        let endY = startY + (deltaY * SEGMENT_LENGTH);
+        let total = enter + hold + leave;
+
+        for(let n=0; n<enter; n++) { 
+            addLine(); 
+            let l = lines[lines.length-1];
+            l.curve = easeInOut(0, curve, n/enter); 
+            l.bank = easeInOut(0, maxBank, n/enter);
+            l.y = easeInOut(startY, endY, n/total);
+        }
+        for(let n=0; n<hold; n++) { 
+            addLine(); 
+            let l = lines[lines.length-1];
+            l.curve = curve; 
+            l.bank = maxBank; 
+            l.y = easeInOut(startY, endY, (enter+n)/total);
+        }
+        for(let n=0; n<leave; n++) { 
+            addLine(); 
+            let l = lines[lines.length-1];
+            l.curve = easeInOut(curve, 0, n/leave); 
+            l.bank = easeInOut(maxBank, 0, n/leave); 
+            l.y = easeInOut(startY, endY, (enter+hold+n)/total);
+        }
+    }
+
+    function buildTrack(config) {
+        addRoad(50, 50, 50, 0, 0, 0);
+
+        for(let i=0; i<100; i++) {
+            let curve = (Math.random() * config.curveMax) + (config.curveMax/2); 
+            if (Math.random() > 0.5) curve = -curve;
+            let bank = (Math.random() * config.bankMax) * (curve > 0 ? 1 : -1); 
+            let hill = (Math.random() * (config.hillMax * 2)) - config.hillMax; 
+            let length = Math.floor(Math.random() * 40) + 40;
+
+            if(Math.random() > 0.85) {
+                curve = 0; 
+                bank = 0;
+            }
+            addRoad(length, length, length, curve, bank, hill);
+        }
+        
+        addRoad(50, 50, 50, 0, 0, -(lines[lines.length-1].y / SEGMENT_LENGTH));
+        for(let i=0; i<200; i++) addLine(); 
+    }
+
+    function project(line, camX, camY, camZ) {
+        line.scale = CAMERA_DEPTH / (line.z - camZ);
+        line.screen.x = Math.round((1 + line.scale * (line.x - camX)) * width / 2);
+        line.screen.y = Math.round((1 - line.scale * (line.y - camY)) * height / 2);
+        line.screen.w = Math.round(line.scale * ROAD_WIDTH * width / 2);
+    }
+
+    function drawPoly(ctx, color, x1, y1, x2, y2, x3, y3, x4, y4) {
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.lineTo(x3, y3);
+        ctx.lineTo(x4, y4);
+        ctx.closePath();
+        ctx.fill();
+    }
+
+    function update(dt) {
+        position += speed * dt;
+        let totalLen = lines.length * SEGMENT_LENGTH;
+        while (position >= totalLen) position -= totalLen;
+        while (position < 0) position += totalLen;
+
+        let currentSeg = lines[Math.floor(position/SEGMENT_LENGTH) % lines.length];
+
+        if (keys.up) speed += ACCEL * dt * 60;
+        else if (keys.down) speed += BREAKING * dt * 60;
+        else speed += DECEL * dt * 60;
+
+        let turnSpeed = dt * 2.5; 
+        if (speed > MAX_SPEED/2) turnSpeed *= 1.3;
+        
+        let isDrifting = keys.drift && speed > 4000 && (keys.left || keys.right);
+        
+        if (isDrifting) {
+            turnSpeed *= 1.8; 
+            speed -= 20 * dt * 60; 
+            driftBox.style.display = 'block';
+            if (Math.random() > 0.6) {
+                smokeParticles.push({
+                    x: width/2 + (keys.left ? 30 : -30) + (Math.random()*30-15), 
+                    y: height * 0.75 + 30, 
+                    vx: (Math.random() - 0.5) * 2,
+                    vy: -Math.random() * 2 - 1,
+                    size: Math.random() * 8 + 4, 
+                    life: 1,
+                    alpha: 0.8
+                });
+            }
+        } else {
+            driftBox.style.display = 'none';
+        }
+
+        let targetAngle = 0;
+        let targetTilt = 0;
+        
+        if (keys.left) {
+            playerX -= turnSpeed;
+            targetAngle = isDrifting ? -0.6 : -0.12;
+            targetTilt = -0.15;
+        } else if (keys.right) {
+            playerX += turnSpeed;
+            targetAngle = isDrifting ? 0.6 : 0.12;
+            targetTilt = 0.15;
+        }
+        
+        carAngle = carAngle + (targetAngle - carAngle) * 0.15 * (dt * 60);
+        carTilt = carTilt + (targetTilt - carTilt) * 0.1 * (dt * 60);
+
+        let centrifugal = (currentSeg.curve * (speed/MAX_SPEED)) * 0.8 * dt;
+        playerX -= centrifugal;
+
+        if (playerX > -1 && playerX < 1) {
+            let increment = (speed * dt) * 0.1;
+            if (isDrifting) increment *= 5;
+            score += increment;
+            
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('neonRacerHighScore', highScore);
+            }
+        }
+
+        if ((playerX < -1 || playerX > 1)) {
+            if (speed > 500) speed += OFF_ROAD_DECEL * dt * 60;
+        }
+
+        playerX = Math.max(-3, Math.min(3, playerX));
+        speed = Math.max(0, Math.min(speed, MAX_SPEED));
+
+        let targetBank = -currentSeg.bank * 0.4; 
+        cameraBank = cameraBank + (targetBank - cameraBank) * 0.06 * (dt * 60);
+
+        carBounce = Math.sin(Date.now() / 80) * (speed/MAX_SPEED) * 3;
+
+        for(let i=0; i<smokeParticles.length; i++) {
+            let p = smokeParticles[i];
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += 0.1;
+            p.size += 0.3;
+            p.life -= 0.02;
+            p.alpha = p.life * 0.6;
+        }
+        smokeParticles = smokeParticles.filter(p => p.life > 0);
+    }
+
+    function render() {
+        ctx.fillStyle = "#000"; 
+        ctx.fillRect(0, 0, width, height);
+
+        let startPos = position / SEGMENT_LENGTH;
+        let index = Math.floor(startPos);
+        let playerSeg = lines[index % lines.length];
+        let camH = CAMERA_HEIGHT + playerSeg.y; 
+
+        ctx.save();
+        ctx.translate(width/2, height/2);
+        
+        let clampedBank = Math.max(-0.25, Math.min(0.25, cameraBank));
+        ctx.rotate(clampedBank); 
+        
+        ctx.translate(-width/2, -height/2);
+
+        let gradient = ctx.createLinearGradient(0, 0, 0, height/2);
+        gradient.addColorStop(0, "#0a0a20");
+        gradient.addColorStop(1, "#1a1a35");
+        ctx.fillStyle = gradient;
+        ctx.fillRect(-width*2, -height*2, width*5, height*2.5); 
+        
+        let groundGradient = ctx.createLinearGradient(0, height/2, 0, height);
+        groundGradient.addColorStop(0, "#0f0f1a");
+        groundGradient.addColorStop(1, "#050508");
+        ctx.fillStyle = groundGradient;
+        ctx.fillRect(-width*2, height/2, width*5, height*2.5); 
+        
+        let maxy = height;
+        let x = 0;
+        let dx = 0;
+
+        for(let n=0; n<DRAW_DISTANCE; n++) {
+            let i = (Math.floor(startPos) + n) % lines.length;
+            let segment = lines[i];
+            let nextSegment = lines[(i + 1) % lines.length];
+            
+            let looped = segment.z < position % (lines.length * SEGMENT_LENGTH);
+            let segmentZ = segment.z - (looped ? lines.length * SEGMENT_LENGTH : 0);
+            
+            if (segmentZ < position - SEGMENT_LENGTH) continue;
+
+            project(segment, playerX * ROAD_WIDTH - x, camH, position - (looped ? lines.length * SEGMENT_LENGTH : 0));
+            project(nextSegment, playerX * ROAD_WIDTH - x - dx, camH, position - (looped ? lines.length * SEGMENT_LENGTH : 0)); 
+
+            x += dx;
+            dx += segment.curve;
+
+            if (segment.screen.y >= maxy) continue;
+            maxy = segment.screen.y;
+
+            let y1_left  = segment.screen.y - (segment.screen.w * segment.bank);
+            let y1_right = segment.screen.y + (segment.screen.w * segment.bank);
+            let y2_left  = nextSegment.screen.y - (nextSegment.screen.w * nextSegment.bank);
+            let y2_right = nextSegment.screen.y + (nextSegment.screen.w * nextSegment.bank);
+
+            let x1_left = segment.screen.x - segment.screen.w;
+            let x1_right = segment.screen.x + segment.screen.w;
+            let x2_left = nextSegment.screen.x - nextSegment.screen.w;
+            let x2_right = nextSegment.screen.x + nextSegment.screen.w;
+
+            let isAlt = (Math.floor(startPos) + n) % 8 < 4;
+            let roadColor = isAlt ? "#1e1e28" : "#242430";
+            let curbColor = isAlt ? "#00ddff" : "#ff00dd"; 
+            let grassColor = isAlt ? "#0c0c18" : "#0a0a12";
+
+            drawPoly(ctx, grassColor, 0, y1_left, x1_left, y1_left, x2_left, y2_left, 0, y2_left);
+            drawPoly(ctx, grassColor, x1_right, y1_right, width, y1_right, width, y2_right, x2_right, y2_right);
+            drawPoly(ctx, roadColor, x1_left, y1_left, x1_right, y1_right, x2_right, y2_right, x2_left, y2_left);
+            
+            let w1 = segment.screen.w * 0.06;
+            let w2 = nextSegment.screen.w * 0.06;
+            
+            drawPoly(ctx, curbColor, x1_left - w1, y1_left, x1_left, y1_left, x2_left, y2_left, x2_left - w2, y2_left);
+            drawPoly(ctx, curbColor, x1_right, y1_right, x1_right + w1, y1_right, x2_right + w2, y2_right, x2_right, y2_right);
+                      
+            if (isAlt) {
+                let lw1 = segment.screen.w * 0.025;
+                let lw2 = nextSegment.screen.w * 0.025;
+                let cy1 = (y1_left + y1_right) / 2;
+                let cy2 = (y2_left + y2_right) / 2;
+                drawPoly(ctx, "#ffffff", segment.screen.x - lw1, cy1, segment.screen.x + lw1, cy1, 
+                                      nextSegment.screen.x + lw2, cy2, nextSegment.screen.x - lw2, cy2);
+            }
+        }
+
+        ctx.restore();
+
+        ctx.save();
+        for(let p of smokeParticles) {
+            ctx.globalAlpha = p.alpha;
+            ctx.fillStyle = "#bbbbbb";
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+        ctx.restore();
+
+        drawCar();
+
+        speedBox.innerHTML = Math.floor(speed/100) + ' <span style="font-size:16px">KM/H</span>';
+        scoreValBox.innerText = Math.floor(score);
+        highScoreBox.innerText = "HIGH: " + Math.floor(highScore);
+    }
+
+    function drawCar() {
+        const cx = width / 2;
+        const cy = height * 0.75;
+
+        ctx.save();
+        ctx.translate(cx, cy + carBounce);
+        ctx.scale(1.2, 1.2);
+        
+        ctx.rotate(carAngle);
+        ctx.scale(1, 1 + carTilt * 0.3);
+
+        ctx.shadowColor = "rgba(0,0,0,0.6)";
+        ctx.shadowBlur = 10;
+        ctx.shadowOffsetY = 5;
+        ctx.fillStyle = "rgba(0,0,0,0.4)";
+        ctx.fillRect(-40, 20, 80, 8);
+        ctx.shadowColor = "transparent";
+
+        ctx.fillStyle = "#cc0000";
+        ctx.beginPath();
+        ctx.moveTo(-36, 15);
+        ctx.lineTo(36, 15);
+        ctx.lineTo(34, -10);
+        ctx.lineTo(-34, -10);
+        ctx.closePath();
+        ctx.fill();
+
+        let carGradient = ctx.createLinearGradient(0, -25, 0, -10);
+        carGradient.addColorStop(0, "#aa0000");
+        carGradient.addColorStop(1, "#880000");
+        ctx.fillStyle = carGradient;
+        ctx.beginPath();
+        ctx.moveTo(-32, -10);
+        ctx.lineTo(32, -10);
+        ctx.lineTo(24, -26);
+        ctx.lineTo(-24, -26);
+        ctx.closePath();
+        ctx.fill();
+        
+        ctx.fillStyle = "#0a0a15";
+        ctx.beginPath();
+        ctx.moveTo(-26, -12);
+        ctx.lineTo(26, -12);
+        ctx.lineTo(20, -22);
+        ctx.lineTo(-20, -22);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = "rgba(255, 255, 255, 0.2)";
+        ctx.fillRect(-20, -20, 8, 6);
+
+        ctx.fillStyle = "#ffcc00"; 
+        ctx.shadowColor = "#ffcc00";
+        ctx.shadowBlur = 15;
+        ctx.fillRect(-34, 3, 14, 8);
+        ctx.fillRect(20, 3, 14, 8);
+        
+        ctx.shadowColor = "transparent";
+        ctx.fillStyle = "#ff3300"; 
+        ctx.fillRect(-34, 12, 10, 4);
+        ctx.fillRect(24, 12, 10, 4);
+        
+        if (speed > 8000) {
+            let flameSize = 4 + Math.random() * 3;
+            ctx.fillStyle = "#00ffff";
+            ctx.shadowColor = "#00ffff";
+            ctx.shadowBlur = 20;
+            ctx.beginPath();
+            ctx.arc(-28, 18, flameSize, 0, Math.PI*2);
+            ctx.arc(28, 18, flameSize, 0, Math.PI*2);
+            ctx.fill();
+            
+            ctx.fillStyle = "#ffffff";
+            ctx.beginPath();
+            ctx.arc(-28, 18, flameSize * 0.5, 0, Math.PI*2);
+            ctx.arc(28, 18, flameSize * 0.5, 0, Math.PI*2);
+            ctx.fill();
+        }
+
+        ctx.restore();
+    }
+
+    let lastTime = 0;
+    function loop(time) {
+        if(!isPlaying) return;
+        
+        let dt = Math.min((time - lastTime) / 1000, 0.1);
+        if (dt <= 0) dt = 1/60;
+        lastTime = time;
+
+        update(dt);
+        render();
+        requestAnimationFrame(loop);
+    }
+
+</script>
+</body>
+</html>
