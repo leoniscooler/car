@@ -187,6 +187,17 @@
 
     <div id="start-screen">
         <h1>NEON VELOCITY</h1>
+        
+        <div class="menu-title" style="margin-bottom: 20px;">SELECT CAR COLOR</div>
+        <div style="display: flex; gap: 15px; justify-content: center; margin-bottom: 40px; pointer-events: all;">
+            <div class="color-box" data-color="red" onclick="selectCarColor('red')" style="width: 50px; height: 50px; background: linear-gradient(135deg, #ff0000, #aa0000); border: 3px solid #fff; cursor: pointer; box-shadow: 0 0 15px #ff0000; transition: transform 0.2s, border 0.2s;" onmouseover="if(this.dataset.color !== carColor) this.style.transform='scale(1.1)'" onmouseout="if(this.dataset.color !== carColor) this.style.transform='scale(1)'"></div>
+            <div class="color-box" data-color="blue" onclick="selectCarColor('blue')" style="width: 50px; height: 50px; background: linear-gradient(135deg, #0088ff, #0044aa); border: 3px solid #fff; cursor: pointer; box-shadow: 0 0 15px #0088ff; transition: transform 0.2s, border 0.2s;" onmouseover="if(this.dataset.color !== carColor) this.style.transform='scale(1.1)'" onmouseout="if(this.dataset.color !== carColor) this.style.transform='scale(1)'"></div>
+            <div class="color-box" data-color="green" onclick="selectCarColor('green')" style="width: 50px; height: 50px; background: linear-gradient(135deg, #00ff00, #00aa00); border: 3px solid #fff; cursor: pointer; box-shadow: 0 0 15px #00ff00; transition: transform 0.2s, border 0.2s;" onmouseover="if(this.dataset.color !== carColor) this.style.transform='scale(1.1)'" onmouseout="if(this.dataset.color !== carColor) this.style.transform='scale(1)'"></div>
+            <div class="color-box" data-color="purple" onclick="selectCarColor('purple')" style="width: 50px; height: 50px; background: linear-gradient(135deg, #ff00ff, #aa00aa); border: 3px solid #fff; cursor: pointer; box-shadow: 0 0 15px #ff00ff; transition: transform 0.2s, border 0.2s;" onmouseover="if(this.dataset.color !== carColor) this.style.transform='scale(1.1)'" onmouseout="if(this.dataset.color !== carColor) this.style.transform='scale(1)'"></div>
+            <div class="color-box" data-color="orange" onclick="selectCarColor('orange')" style="width: 50px; height: 50px; background: linear-gradient(135deg, #ff8800, #cc6600); border: 3px solid #fff; cursor: pointer; box-shadow: 0 0 15px #ff8800; transition: transform 0.2s, border 0.2s;" onmouseover="if(this.dataset.color !== carColor) this.style.transform='scale(1.1)'" onmouseout="if(this.dataset.color !== carColor) this.style.transform='scale(1)'"></div>
+            <div class="color-box" data-color="cyan" onclick="selectCarColor('cyan')" style="width: 50px; height: 50px; background: linear-gradient(135deg, #00ffff, #00aaaa); border: 3px solid #fff; cursor: pointer; box-shadow: 0 0 15px #00ffff; transition: transform 0.2s, border 0.2s;" onmouseover="if(this.dataset.color !== carColor) this.style.transform='scale(1.1)'" onmouseout="if(this.dataset.color !== carColor) this.style.transform='scale(1)'"></div>
+        </div>
+        
         <div class="menu-title">SELECT DIFFICULTY</div>
         
         <div class="btn-container">
@@ -239,7 +250,11 @@
     let carAngle = 0; 
     let carTilt = 0;
     let carBounce = 0;
-    let cameraBank = 0; 
+    let cameraBank = 0;
+    let steeringInput = 0; // Gradual steering input
+    let lateralVelocity = 0; // Sideways momentum
+    let carColor = localStorage.getItem('neonRacerCarColor') || 'red'; // Selected car color
+    let wheelRotation = 0; // Wheel animation
     let lines = [];
     let smokeParticles = [];
     let score = 0;
@@ -274,6 +289,31 @@
         normal: { curveMax: 5,  bankMax: 0.25, hillMax: 40 }
     };
 
+    function selectCarColor(color) {
+        carColor = color;
+        localStorage.setItem('neonRacerCarColor', color);
+        // Update visual selection
+        updateColorSelection();
+    }
+
+    function updateColorSelection() {
+        const colorBoxes = document.querySelectorAll('.color-box');
+        colorBoxes.forEach(box => {
+            if (box.dataset.color === carColor) {
+                box.style.border = '4px solid #fff';
+                box.style.transform = 'scale(1.2)';
+            } else {
+                box.style.border = '3px solid #fff';
+                box.style.transform = 'scale(1)';
+            }
+        });
+    }
+
+    // Initialize color selection on page load
+    window.addEventListener('DOMContentLoaded', () => {
+        updateColorSelection();
+    });
+
     function startGame(difficulty) {
         startScreen.style.display = 'none';
         lines = [];
@@ -285,6 +325,8 @@
         carAngle = 0;
         carTilt = 0;
         carBounce = 0;
+        steeringInput = 0;
+        lateralVelocity = 0;
         smokeParticles = [];
         buildTrack(SETTINGS[difficulty]);
         isPlaying = true;
@@ -387,18 +429,41 @@
         else if (keys.down) speed += BREAKING * dt * 60;
         else speed += DECEL * dt * 60;
 
-        let turnSpeed = dt * 2.5; 
-        if (speed > MAX_SPEED/2) turnSpeed *= 1.3;
+        // Realistic steering input with gradual response
+        let targetSteeringInput = 0;
+        if (keys.left) targetSteeringInput = -1;
+        else if (keys.right) targetSteeringInput = 1;
         
-        let isDrifting = keys.drift && speed > 4000 && (keys.left || keys.right);
+        // Smooth steering input (steering wheel doesn't turn instantly)
+        let steeringResponse = 0.08; // How quickly steering responds
+        steeringInput += (targetSteeringInput - steeringInput) * steeringResponse;
+        
+        // Calculate grip based on speed (less grip at higher speeds = understeer)
+        let speedRatio = speed / MAX_SPEED;
+        let gripFactor = 1.0;
+        
+        if (speedRatio > 0.7) {
+            // Understeer at high speeds
+            gripFactor = 1.0 - (speedRatio - 0.7) * 0.8;
+        }
+        
+        let isDrifting = keys.drift && speed > 4000 && Math.abs(steeringInput) > 0.3;
+        
+        // Calculate turn rate based on speed and conditions
+        let baseTurnRate = dt * 1.3;
+        let turnMultiplier = 1.0;
         
         if (isDrifting) {
-            turnSpeed *= 1.8; 
-            speed -= 20 * dt * 60; 
+            // Drifting reduces grip but allows sharper turns
+            gripFactor *= 0.4;
+            turnMultiplier = 1.6;
+            speed -= 25 * dt * 60; 
             driftBox.style.display = 'block';
+            
+            // Drift particles
             if (Math.random() > 0.6) {
                 smokeParticles.push({
-                    x: width/2 + (keys.left ? 30 : -30) + (Math.random()*30-15), 
+                    x: width/2 + (steeringInput < 0 ? 30 : -30) + (Math.random()*30-15), 
                     y: height * 0.75 + 30, 
                     vx: (Math.random() - 0.5) * 2,
                     vy: -Math.random() * 2 - 1,
@@ -409,23 +474,38 @@
             }
         } else {
             driftBox.style.display = 'none';
+            // Normal grip at lower speeds
+            if (speedRatio < 0.3) turnMultiplier = 1.1;
         }
-
+        
+        // Apply steering force to lateral velocity (momentum-based)
+        let steeringForce = steeringInput * baseTurnRate * turnMultiplier * gripFactor;
+        lateralVelocity += steeringForce;
+        
+        // Lateral friction - reduces sideways momentum naturally
+        let lateralFriction = isDrifting ? 0.88 : 0.80;
+        lateralVelocity *= lateralFriction;
+        
+        // Apply lateral velocity to player position
+        playerX += lateralVelocity;
+        
+        // Visual feedback
         let targetAngle = 0;
         let targetTilt = 0;
         
-        if (keys.left) {
-            playerX -= turnSpeed;
-            targetAngle = isDrifting ? -0.6 : -0.12;
-            targetTilt = -0.15;
-        } else if (keys.right) {
-            playerX += turnSpeed;
-            targetAngle = isDrifting ? 0.6 : 0.12;
-            targetTilt = 0.15;
+        if (Math.abs(steeringInput) > 0.1) {
+            if (isDrifting) {
+                targetAngle = steeringInput * 0.6;
+                targetTilt = steeringInput * 0.2;
+            } else {
+                targetAngle = steeringInput * 0.12 * (1 + speedRatio * 0.3);
+                targetTilt = steeringInput * 0.15;
+            }
         }
         
-        carAngle = carAngle + (targetAngle - carAngle) * 0.15 * (dt * 60);
-        carTilt = carTilt + (targetTilt - carTilt) * 0.1 * (dt * 60);
+        // Smooth visual transitions
+        carAngle += (targetAngle - carAngle) * 0.15 * (dt * 60);
+        carTilt += (targetTilt - carTilt) * 0.1 * (dt * 60);
 
         let centrifugal = (currentSeg.curve * (speed/MAX_SPEED)) * 0.8 * dt;
         playerX -= centrifugal;
@@ -443,6 +523,7 @@
 
         if ((playerX < -1 || playerX > 1)) {
             if (speed > 500) speed += OFF_ROAD_DECEL * dt * 60;
+            score = 0; // Reset score when off track
         }
 
         playerX = Math.max(-3, Math.min(3, playerX));
@@ -452,6 +533,9 @@
         cameraBank = cameraBank + (targetBank - cameraBank) * 0.06 * (dt * 60);
 
         carBounce = Math.sin(Date.now() / 80) * (speed/MAX_SPEED) * 3;
+        
+        // Update wheel rotation based on speed
+        wheelRotation += (speed / MAX_SPEED) * dt * 30;
 
         for(let i=0; i<smokeParticles.length; i++) {
             let p = smokeParticles[i];
@@ -576,81 +660,281 @@
         const cx = width / 2;
         const cy = height * 0.75;
 
+        // Get car color values
+        let colors = {
+            red: { main: ['#b30000', '#ff0000', '#ff2222'], dark: '#660000', light: 'rgba(255, 100, 100, 0.4)' },
+            blue: { main: ['#004488', '#0088ff', '#44aaff'], dark: '#002244', light: 'rgba(100, 150, 255, 0.4)' },
+            green: { main: ['#008800', '#00ff00', '#44ff44'], dark: '#004400', light: 'rgba(100, 255, 100, 0.4)' },
+            purple: { main: ['#880088', '#ff00ff', '#ff44ff'], dark: '#440044', light: 'rgba(255, 100, 255, 0.4)' },
+            orange: { main: ['#cc6600', '#ff8800', '#ffaa44'], dark: '#663300', light: 'rgba(255, 180, 100, 0.4)' },
+            cyan: { main: ['#008888', '#00ffff', '#44ffff'], dark: '#004444', light: 'rgba(100, 255, 255, 0.4)' }
+        };
+        let currentColor = colors[carColor] || colors.red;
+
         ctx.save();
         ctx.translate(cx, cy + carBounce);
-        ctx.scale(1.2, 1.2);
+        ctx.scale(1.3, 1.3);
         
         ctx.rotate(carAngle);
         ctx.scale(1, 1 + carTilt * 0.3);
 
-        ctx.shadowColor = "rgba(0,0,0,0.6)";
-        ctx.shadowBlur = 10;
-        ctx.shadowOffsetY = 5;
-        ctx.fillStyle = "rgba(0,0,0,0.4)";
-        ctx.fillRect(-40, 20, 80, 8);
-        ctx.shadowColor = "transparent";
-
-        ctx.fillStyle = "#cc0000";
-        ctx.beginPath();
-        ctx.moveTo(-36, 15);
-        ctx.lineTo(36, 15);
-        ctx.lineTo(34, -10);
-        ctx.lineTo(-34, -10);
-        ctx.closePath();
-        ctx.fill();
-
-        let carGradient = ctx.createLinearGradient(0, -25, 0, -10);
-        carGradient.addColorStop(0, "#aa0000");
-        carGradient.addColorStop(1, "#880000");
-        ctx.fillStyle = carGradient;
-        ctx.beginPath();
-        ctx.moveTo(-32, -10);
-        ctx.lineTo(32, -10);
-        ctx.lineTo(24, -26);
-        ctx.lineTo(-24, -26);
-        ctx.closePath();
-        ctx.fill();
-        
-        ctx.fillStyle = "#0a0a15";
-        ctx.beginPath();
-        ctx.moveTo(-26, -12);
-        ctx.lineTo(26, -12);
-        ctx.lineTo(20, -22);
-        ctx.lineTo(-20, -22);
-        ctx.closePath();
-        ctx.fill();
-
-        ctx.fillStyle = "rgba(255, 255, 255, 0.2)";
-        ctx.fillRect(-20, -20, 8, 6);
-
-        ctx.fillStyle = "#ffcc00"; 
-        ctx.shadowColor = "#ffcc00";
-        ctx.shadowBlur = 15;
-        ctx.fillRect(-34, 3, 14, 8);
-        ctx.fillRect(20, 3, 14, 8);
-        
-        ctx.shadowColor = "transparent";
-        ctx.fillStyle = "#ff3300"; 
-        ctx.fillRect(-34, 12, 10, 4);
-        ctx.fillRect(24, 12, 10, 4);
-        
-        if (speed > 8000) {
-            let flameSize = 4 + Math.random() * 3;
-            ctx.fillStyle = "#00ffff";
-            ctx.shadowColor = "#00ffff";
-            ctx.shadowBlur = 20;
+        // Draw wheels first (behind car)
+        function drawWheel(x, y) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(wheelRotation);
+            
+            // Tire
+            ctx.fillStyle = '#1a1a1a';
             ctx.beginPath();
-            ctx.arc(-28, 18, flameSize, 0, Math.PI*2);
-            ctx.arc(28, 18, flameSize, 0, Math.PI*2);
+            ctx.arc(0, 0, 6, 0, Math.PI*2);
             ctx.fill();
             
-            ctx.fillStyle = "#ffffff";
+            // Rim
+            ctx.fillStyle = '#888';
             ctx.beginPath();
-            ctx.arc(-28, 18, flameSize * 0.5, 0, Math.PI*2);
-            ctx.arc(28, 18, flameSize * 0.5, 0, Math.PI*2);
+            ctx.arc(0, 0, 4, 0, Math.PI*2);
+            ctx.fill();
+            
+            // Spokes
+            ctx.strokeStyle = '#aaa';
+            ctx.lineWidth = 1;
+            for(let i = 0; i < 5; i++) {
+                let angle = (i / 5) * Math.PI * 2;
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(Math.cos(angle) * 3, Math.sin(angle) * 3);
+                ctx.stroke();
+            }
+            
+            ctx.restore();
+        }
+        
+        // Draw all 4 wheels
+        drawWheel(-32, 10);
+        drawWheel(32, 10);
+        drawWheel(-32, -8);
+        drawWheel(32, -8);
+
+        // Enhanced shadow with gradient
+        ctx.shadowColor = "rgba(0,0,0,0.8)";
+        ctx.shadowBlur = 20;
+        ctx.shadowOffsetY = 8;
+        let shadowGradient = ctx.createRadialGradient(0, 22, 0, 0, 22, 55);
+        shadowGradient.addColorStop(0, "rgba(0,0,0,0.7)");
+        shadowGradient.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.fillStyle = shadowGradient;
+        ctx.fillRect(-50, 18, 100, 12);
+        ctx.shadowColor = "transparent";
+
+        // Main body with metallic gradient (custom color)
+        let bodyGradient = ctx.createLinearGradient(-40, 15, 40, 15);
+        bodyGradient.addColorStop(0, currentColor.main[0]);
+        bodyGradient.addColorStop(0.3, currentColor.main[1]);
+        bodyGradient.addColorStop(0.5, currentColor.main[2]);
+        bodyGradient.addColorStop(0.7, currentColor.main[1]);
+        bodyGradient.addColorStop(1, currentColor.main[0]);
+        ctx.fillStyle = bodyGradient;
+        ctx.beginPath();
+        ctx.moveTo(-38, 16);
+        ctx.lineTo(38, 16);
+        ctx.lineTo(36, -10);
+        ctx.lineTo(-36, -10);
+        ctx.closePath();
+        ctx.fill();
+
+        // Body outline for depth
+        ctx.strokeStyle = currentColor.dark;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // Side panel highlights
+        ctx.fillStyle = currentColor.light;
+        ctx.beginPath();
+        ctx.moveTo(-34, 14);
+        ctx.lineTo(-30, 10);
+        ctx.lineTo(-30, -6);
+        ctx.lineTo(-34, -8);
+        ctx.closePath();
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(34, 14);
+        ctx.lineTo(30, 10);
+        ctx.lineTo(30, -6);
+        ctx.lineTo(34, -8);
+        ctx.closePath();
+        ctx.fill();
+
+        // Spoiler
+        ctx.fillStyle = currentColor.dark;
+        ctx.fillRect(-38, 14, 76, 3);
+        ctx.fillStyle = '#000';
+        ctx.fillRect(-40, 16, 80, 2);
+
+        // Hood with gradient
+        let hoodGradient = ctx.createLinearGradient(0, -26, 0, -10);
+        hoodGradient.addColorStop(0, currentColor.main[0]);
+        hoodGradient.addColorStop(0.5, currentColor.main[1]);
+        hoodGradient.addColorStop(1, currentColor.main[0]);
+        ctx.fillStyle = hoodGradient;
+        ctx.beginPath();
+        ctx.moveTo(-34, -10);
+        ctx.lineTo(34, -10);
+        ctx.lineTo(26, -28);
+        ctx.lineTo(-26, -28);
+        ctx.closePath();
+        ctx.fill();
+
+        // Hood outline
+        ctx.strokeStyle = currentColor.dark;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // Hood detail line
+        ctx.strokeStyle = currentColor.main[2];
+        ctx.lineWidth = 0.8;
+        ctx.beginPath();
+        ctx.moveTo(-28, -12);
+        ctx.lineTo(28, -12);
+        ctx.stroke();
+        
+        // Windshield with reflection
+        let glassGradient = ctx.createLinearGradient(0, -24, 0, -12);
+        glassGradient.addColorStop(0, "rgba(10, 10, 25, 0.95)");
+        glassGradient.addColorStop(0.3, "rgba(30, 30, 50, 0.9)");
+        glassGradient.addColorStop(1, "rgba(10, 10, 25, 0.7)");
+        ctx.fillStyle = glassGradient;
+        ctx.beginPath();
+        ctx.moveTo(-28, -12);
+        ctx.lineTo(28, -12);
+        ctx.lineTo(22, -24);
+        ctx.lineTo(-22, -24);
+        ctx.closePath();
+        ctx.fill();
+
+        // Glass reflection highlights
+        ctx.fillStyle = "rgba(255, 255, 255, 0.3)";
+        ctx.fillRect(-22, -22, 12, 4);
+        ctx.fillStyle = "rgba(100, 150, 255, 0.2)";
+        ctx.fillRect(-18, -18, 8, 3);
+
+        // Side mirrors
+        ctx.fillStyle = currentColor.dark;
+        ctx.fillRect(-38, -2, 4, 6);
+        ctx.fillRect(34, -2, 4, 6);
+        ctx.fillStyle = "rgba(50, 100, 150, 0.5)";
+        ctx.fillRect(-37, -1, 2, 4);
+        ctx.fillRect(35, -1, 2, 4);
+
+        // Turn signals (blink when turning)
+        let turnSignalActive = Math.floor(Date.now() / 300) % 2 === 0;
+        if (keys.left && turnSignalActive) {
+            ctx.shadowColor = "#ffaa00";
+            ctx.shadowBlur = 15;
+            ctx.fillStyle = "#ffaa00";
+            ctx.fillRect(-38, -5, 3, 3);
+            ctx.shadowBlur = 0;
+        }
+        if (keys.right && turnSignalActive) {
+            ctx.shadowColor = "#ffaa00";
+            ctx.shadowBlur = 15;
+            ctx.fillStyle = "#ffaa00";
+            ctx.fillRect(35, -5, 3, 3);
+            ctx.shadowBlur = 0;
+        }
+
+        // Enhanced headlights with realistic glow
+        ctx.shadowColor = "#ffee00";
+        ctx.shadowBlur = 20;
+        let headlightGradient = ctx.createRadialGradient(-30, 5, 0, -30, 5, 8);
+        headlightGradient.addColorStop(0, "#ffffff");
+        headlightGradient.addColorStop(0.4, "#ffff88");
+        headlightGradient.addColorStop(1, "#ffcc00");
+        ctx.fillStyle = headlightGradient;
+        ctx.fillRect(-36, 1, 16, 10);
+        
+        headlightGradient = ctx.createRadialGradient(30, 5, 0, 30, 5, 8);
+        headlightGradient.addColorStop(0, "#ffffff");
+        headlightGradient.addColorStop(0.4, "#ffff88");
+        headlightGradient.addColorStop(1, "#ffcc00");
+        ctx.fillStyle = headlightGradient;
+        ctx.fillRect(20, 1, 16, 10);
+
+        // Headlight details
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+        ctx.fillRect(-34, 3, 4, 3);
+        ctx.fillRect(30, 3, 4, 3);
+        
+        // Brake lights (glow brighter when braking)
+        let brakeIntensity = keys.down ? 1.0 : 0.5;
+        ctx.shadowColor = "#ff0000";
+        ctx.shadowBlur = keys.down ? 25 : 12;
+        let taillightGradient = ctx.createRadialGradient(-29, 13, 0, -29, 13, 5);
+        taillightGradient.addColorStop(0, keys.down ? "#ffcccc" : "#ff6666");
+        taillightGradient.addColorStop(0.5, "#ff0000");
+        taillightGradient.addColorStop(1, "#aa0000");
+        ctx.fillStyle = taillightGradient;
+        ctx.globalAlpha = brakeIntensity;
+        ctx.fillRect(-36, 11, 12, 5);
+        
+        taillightGradient = ctx.createRadialGradient(29, 13, 0, 29, 13, 5);
+        taillightGradient.addColorStop(0, keys.down ? "#ffcccc" : "#ff6666");
+        taillightGradient.addColorStop(0.5, "#ff0000");
+        taillightGradient.addColorStop(1, "#aa0000");
+        ctx.fillStyle = taillightGradient;
+        ctx.fillRect(24, 11, 12, 5);
+        ctx.globalAlpha = 1.0;
+
+        ctx.shadowBlur = 0;
+
+        // Exhaust pipes
+        ctx.fillStyle = "#222";
+        ctx.beginPath();
+        ctx.arc(-30, 18, 3, 0, Math.PI*2);
+        ctx.arc(30, 18, 3, 0, Math.PI*2);
+        ctx.fill();
+        ctx.strokeStyle = "#444";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        
+        // Enhanced exhaust flames at high speed
+        if (speed > 8000) {
+            let flameSize = 5 + Math.random() * 4;
+            let innerFlameSize = flameSize * 0.6;
+            
+            // Outer glow
+            let flameGradient = ctx.createRadialGradient(-30, 18, 0, -30, 18, flameSize * 2);
+            flameGradient.addColorStop(0, "#00ffff");
+            flameGradient.addColorStop(0.3, "rgba(0, 255, 255, 0.6)");
+            flameGradient.addColorStop(1, "rgba(0, 255, 255, 0)");
+            ctx.fillStyle = flameGradient;
+            ctx.shadowColor = "#00ffff";
+            ctx.shadowBlur = 25;
+            ctx.beginPath();
+            ctx.arc(-30, 18, flameSize * 1.5, 0, Math.PI*2);
+            ctx.arc(30, 18, flameSize * 1.5, 0, Math.PI*2);
+            ctx.fill();
+            
+            // Inner flame
+            ctx.fillStyle = "#00ffff";
+            ctx.shadowBlur = 15;
+            ctx.beginPath();
+            ctx.arc(-30, 18, flameSize, 0, Math.PI*2);
+            ctx.arc(30, 18, flameSize, 0, Math.PI*2);
+            ctx.fill();
+            
+            // Core
+            ctx.fillStyle = "#ffffff";
+            ctx.shadowBlur = 8;
+            ctx.beginPath();
+            ctx.arc(-30, 18, innerFlameSize, 0, Math.PI*2);
+            ctx.arc(30, 18, innerFlameSize, 0, Math.PI*2);
             ctx.fill();
         }
 
+        ctx.shadowColor = "transparent";
+        ctx.shadowBlur = 0;
         ctx.restore();
     }
 
