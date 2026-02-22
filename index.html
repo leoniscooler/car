@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>Neon Velocity</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         * {
@@ -33,9 +34,9 @@
 
         #speed-box {
             position: absolute;
-            top: 20px; left: 20px;
+            top: clamp(10px, 2vh, 20px); left: clamp(10px, 1.5vw, 20px);
             background: linear-gradient(135deg, rgba(0, 255, 255, 0.15), rgba(0, 100, 150, 0.1));
-            padding: 15px 25px;
+            padding: clamp(8px, 1.5vh, 15px) clamp(12px, 2vw, 25px);
             border: 2px solid #0ff;
             border-radius: 10px;
             transform: skew(-10deg);
@@ -43,7 +44,7 @@
         }
         
         #speed-box .speed-value {
-            font-size: 42px;
+            font-size: clamp(24px, 4vw, 42px);
             font-weight: 900;
             color: #0ff;
             text-shadow: 0 0 10px #0ff, 0 0 20px #0ff;
@@ -52,7 +53,7 @@
         }
         
         #speed-box .speed-unit {
-            font-size: 14px;
+            font-size: clamp(10px, 1.3vw, 14px);
             color: #0aa;
             margin-left: 5px;
             transform: skew(10deg);
@@ -60,7 +61,7 @@
         }
         
         #speed-box .speed-label {
-            font-size: 10px;
+            font-size: clamp(8px, 1vw, 10px);
             color: #088;
             letter-spacing: 3px;
             margin-top: 5px;
@@ -70,7 +71,7 @@
 
         #timer-box {
             position: absolute;
-            top: 20px; right: 20px;
+            top: clamp(10px, 2vh, 20px); right: clamp(10px, 1.5vw, 20px);
             text-align: right;
         }
 
@@ -78,7 +79,7 @@
             background: linear-gradient(135deg, rgba(255, 0, 255, 0.15), rgba(150, 0, 100, 0.1));
             border: 2px solid #f0f;
             border-radius: 10px;
-            padding: 15px 25px;
+            padding: clamp(8px, 1.5vh, 15px) clamp(12px, 2vw, 25px);
             margin-bottom: 8px;
             box-shadow: 0 0 20px rgba(255, 0, 255, 0.4), inset 0 0 30px rgba(255, 0, 255, 0.1);
             transform: skew(10deg);
@@ -89,7 +90,7 @@
         }
 
         #timer-value {
-            font-size: 34px;
+            font-size: clamp(20px, 3.5vw, 34px);
             font-weight: 900;
             color: #f0f;
             text-shadow: 0 0 10px #f0f, 0 0 20px #f0f;
@@ -210,8 +211,8 @@
 
         #drift-indicator {
             position: absolute;
-            top: 110px; left: 20px;
-            font-size: 18px;
+            top: clamp(70px, 12vh, 110px); left: clamp(10px, 1.5vw, 20px);
+            font-size: clamp(12px, 1.8vw, 18px);
             font-weight: 700;
             color: #fff;
             background: linear-gradient(90deg, #ff0055, #ff3377);
@@ -279,11 +280,14 @@
             background: radial-gradient(ellipse at center, rgba(20, 0, 40, 0.95) 0%, rgba(0, 0, 0, 0.98) 100%);
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: flex-start;
             align-items: center;
             color: white;
             z-index: 10;
             backdrop-filter: blur(8px);
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: clamp(15px, 3vh, 40px) 15px;
         }
         
         /* Animated background lines */
@@ -305,7 +309,7 @@
         
         h1 { 
             margin: 0; 
-            font-size: clamp(40px, 8vw, 100px); 
+            font-size: clamp(28px, 7vw, 90px); 
             font-weight: 900;
             color: #fff; 
             text-shadow: 
@@ -313,19 +317,19 @@
                 0 0 20px #f0f, 
                 0 0 40px #f0f,
                 0 0 80px #f0f;
-            letter-spacing: 8px;
+            letter-spacing: clamp(3px, 1vw, 8px);
             transform: skew(-5deg); 
-            margin-bottom: 10px;
+            margin-bottom: clamp(4px, 1vh, 10px);
             animation: titleGlow 3s ease-in-out infinite;
             position: relative;
             z-index: 1;
         }
         
         .subtitle {
-            font-size: clamp(12px, 2vw, 18px);
+            font-size: clamp(9px, 1.8vw, 18px);
             color: #0ff;
-            letter-spacing: 8px;
-            margin-bottom: 50px;
+            letter-spacing: clamp(3px, 1vw, 8px);
+            margin-bottom: clamp(15px, 4vh, 50px);
             text-shadow: 0 0 10px #0ff;
             animation: subtitlePulse 2s ease-in-out infinite;
         }
@@ -350,19 +354,20 @@
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 15px;
-            padding: 25px 40px;
-            margin-bottom: 30px;
+            padding: clamp(12px, 2vh, 25px) clamp(15px, 3vw, 40px);
+            margin-bottom: clamp(10px, 2vh, 30px);
             backdrop-filter: blur(5px);
             position: relative;
             z-index: 1;
+            max-width: 95vw;
         }
         
         .menu-title {
-            font-size: 16px; 
+            font-size: clamp(11px, 1.5vw, 16px); 
             font-weight: 700;
             color: #0ff; 
-            margin-bottom: 20px; 
-            letter-spacing: 4px;
+            margin-bottom: clamp(10px, 1.5vh, 20px); 
+            letter-spacing: clamp(2px, 0.5vw, 4px);
             text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
         }
         
@@ -374,8 +379,8 @@
         }
         
         .color-box {
-            width: 55px;
-            height: 55px;
+            width: clamp(36px, 5vw, 55px);
+            height: clamp(36px, 5vw, 55px);
             border-radius: 12px;
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -422,8 +427,8 @@
         }
 
         .vehicle-card {
-            width: 110px;
-            padding: 12px 8px 10px;
+            width: clamp(80px, 12vw, 110px);
+            padding: clamp(6px, 1vh, 12px) clamp(4px, 0.5vw, 8px) clamp(6px, 1vh, 10px);
             border-radius: 12px;
             cursor: pointer;
             background: rgba(255,255,255,0.04);
@@ -514,9 +519,9 @@
 
         .btn {
             font-family: 'Orbitron', sans-serif;
-            font-size: 22px;
+            font-size: clamp(14px, 2.5vw, 22px);
             font-weight: 700;
-            padding: 18px 45px;
+            padding: clamp(10px, 2vh, 18px) clamp(24px, 5vw, 45px);
             border: none;
             border-radius: 10px;
             color: #fff;
@@ -577,8 +582,8 @@
         }
         
         .controls-info {
-            margin-top: 40px;
-            padding: 20px 30px;
+            margin-top: clamp(15px, 3vh, 40px);
+            padding: clamp(10px, 1.5vh, 20px) clamp(15px, 2vw, 30px);
             background: rgba(255, 255, 255, 0.03);
             border-radius: 10px;
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -589,26 +594,26 @@
         .controls-info .control-row {
             display: flex;
             justify-content: center;
-            gap: 30px;
+            gap: clamp(10px, 2vw, 30px);
             flex-wrap: wrap;
         }
         
         .control-item {
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-size: 13px;
+            gap: 6px;
+            font-size: clamp(10px, 1.2vw, 13px);
             color: #888;
         }
         
         .control-key {
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 5px 10px;
+            padding: clamp(3px, 0.5vh, 5px) clamp(5px, 1vw, 10px);
             border-radius: 5px;
-            font-size: 11px;
+            font-size: clamp(9px, 1vw, 11px);
             color: #aaa;
-            min-width: 30px;
+            min-width: 24px;
             text-align: center;
         }
         
@@ -806,6 +811,7 @@
         height = window.innerHeight;
         canvas.width = width;
         canvas.height = height;
+        cachedSkyGradient = null; // invalidate cached gradients
     }
     window.addEventListener('resize', resize);
     resize(); 
@@ -1269,9 +1275,10 @@
 
     function project(line, camX, camY, camZ) {
         line.scale = CAMERA_DEPTH / (line.z - camZ);
-        line.screen.x = Math.round((1 + line.scale * (line.x - camX)) * width / 2);
+        let halfW = Math.min(width, height * 1.8) / 2; // clamp projection to aspect ratio
+        line.screen.x = Math.round(width / 2 + line.scale * (line.x - camX) * halfW);
         line.screen.y = Math.round((1 - line.scale * (line.y - camY)) * height / 2);
-        line.screen.w = Math.round(line.scale * ROAD_WIDTH * width / 2);
+        line.screen.w = Math.round(line.scale * ROAD_WIDTH * halfW);
     }
 
     function drawPoly(ctx, color, x1, y1, x2, y2, x3, y3, x4, y4) {
@@ -1957,7 +1964,8 @@
 
         ctx.save();
         ctx.translate(cx, cy + carBounce + sinkOffset);
-        ctx.scale(1.3, 1.3);
+        let carScale = Math.min(width, height) / 500; // scale car to screen
+        ctx.scale(carScale, carScale);
 
         // Clip to hide bottom of car when submerging
         if (submergeProgress > 0) {
