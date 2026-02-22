@@ -2,7 +2,6 @@
 <html>
 <head>
     <title>Neon Velocity</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         * {
@@ -34,9 +33,9 @@
 
         #speed-box {
             position: absolute;
-            top: clamp(10px, 2vh, 20px); left: clamp(10px, 1.5vw, 20px);
+            top: 20px; left: 20px;
             background: linear-gradient(135deg, rgba(0, 255, 255, 0.15), rgba(0, 100, 150, 0.1));
-            padding: clamp(8px, 1.5vh, 15px) clamp(12px, 2vw, 25px);
+            padding: 15px 25px;
             border: 2px solid #0ff;
             border-radius: 10px;
             transform: skew(-10deg);
@@ -44,7 +43,7 @@
         }
         
         #speed-box .speed-value {
-            font-size: clamp(24px, 4vw, 42px);
+            font-size: 42px;
             font-weight: 900;
             color: #0ff;
             text-shadow: 0 0 10px #0ff, 0 0 20px #0ff;
@@ -53,7 +52,7 @@
         }
         
         #speed-box .speed-unit {
-            font-size: clamp(10px, 1.3vw, 14px);
+            font-size: 14px;
             color: #0aa;
             margin-left: 5px;
             transform: skew(10deg);
@@ -61,7 +60,7 @@
         }
         
         #speed-box .speed-label {
-            font-size: clamp(8px, 1vw, 10px);
+            font-size: 10px;
             color: #088;
             letter-spacing: 3px;
             margin-top: 5px;
@@ -71,7 +70,7 @@
 
         #timer-box {
             position: absolute;
-            top: clamp(10px, 2vh, 20px); right: clamp(10px, 1.5vw, 20px);
+            top: 20px; right: 20px;
             text-align: right;
         }
 
@@ -79,7 +78,7 @@
             background: linear-gradient(135deg, rgba(255, 0, 255, 0.15), rgba(150, 0, 100, 0.1));
             border: 2px solid #f0f;
             border-radius: 10px;
-            padding: clamp(8px, 1.5vh, 15px) clamp(12px, 2vw, 25px);
+            padding: 15px 25px;
             margin-bottom: 8px;
             box-shadow: 0 0 20px rgba(255, 0, 255, 0.4), inset 0 0 30px rgba(255, 0, 255, 0.1);
             transform: skew(10deg);
@@ -90,7 +89,7 @@
         }
 
         #timer-value {
-            font-size: clamp(20px, 3.5vw, 34px);
+            font-size: 34px;
             font-weight: 900;
             color: #f0f;
             text-shadow: 0 0 10px #f0f, 0 0 20px #f0f;
@@ -211,8 +210,8 @@
 
         #drift-indicator {
             position: absolute;
-            top: clamp(70px, 12vh, 110px); left: clamp(10px, 1.5vw, 20px);
-            font-size: clamp(12px, 1.8vw, 18px);
+            top: 110px; left: 20px;
+            font-size: 18px;
             font-weight: 700;
             color: #fff;
             background: linear-gradient(90deg, #ff0055, #ff3377);
@@ -280,14 +279,11 @@
             background: radial-gradient(ellipse at center, rgba(20, 0, 40, 0.95) 0%, rgba(0, 0, 0, 0.98) 100%);
             display: flex;
             flex-direction: column;
-            justify-content: flex-start;
+            justify-content: center;
             align-items: center;
             color: white;
             z-index: 10;
             backdrop-filter: blur(8px);
-            overflow-y: auto;
-            overflow-x: hidden;
-            padding: clamp(15px, 3vh, 40px) 15px;
         }
         
         /* Animated background lines */
@@ -309,7 +305,7 @@
         
         h1 { 
             margin: 0; 
-            font-size: clamp(28px, 7vw, 90px); 
+            font-size: clamp(40px, 8vw, 100px); 
             font-weight: 900;
             color: #fff; 
             text-shadow: 
@@ -317,19 +313,19 @@
                 0 0 20px #f0f, 
                 0 0 40px #f0f,
                 0 0 80px #f0f;
-            letter-spacing: clamp(3px, 1vw, 8px);
+            letter-spacing: 8px;
             transform: skew(-5deg); 
-            margin-bottom: clamp(4px, 1vh, 10px);
+            margin-bottom: 10px;
             animation: titleGlow 3s ease-in-out infinite;
             position: relative;
             z-index: 1;
         }
         
         .subtitle {
-            font-size: clamp(9px, 1.8vw, 18px);
+            font-size: clamp(12px, 2vw, 18px);
             color: #0ff;
-            letter-spacing: clamp(3px, 1vw, 8px);
-            margin-bottom: clamp(15px, 4vh, 50px);
+            letter-spacing: 8px;
+            margin-bottom: 50px;
             text-shadow: 0 0 10px #0ff;
             animation: subtitlePulse 2s ease-in-out infinite;
         }
@@ -354,20 +350,19 @@
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 15px;
-            padding: clamp(12px, 2vh, 25px) clamp(15px, 3vw, 40px);
-            margin-bottom: clamp(10px, 2vh, 30px);
+            padding: 25px 40px;
+            margin-bottom: 30px;
             backdrop-filter: blur(5px);
             position: relative;
             z-index: 1;
-            max-width: 95vw;
         }
         
         .menu-title {
-            font-size: clamp(11px, 1.5vw, 16px); 
+            font-size: 16px; 
             font-weight: 700;
             color: #0ff; 
-            margin-bottom: clamp(10px, 1.5vh, 20px); 
-            letter-spacing: clamp(2px, 0.5vw, 4px);
+            margin-bottom: 20px; 
+            letter-spacing: 4px;
             text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
         }
         
@@ -379,8 +374,8 @@
         }
         
         .color-box {
-            width: clamp(36px, 5vw, 55px);
-            height: clamp(36px, 5vw, 55px);
+            width: 55px;
+            height: 55px;
             border-radius: 12px;
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -427,8 +422,8 @@
         }
 
         .vehicle-card {
-            width: clamp(80px, 12vw, 110px);
-            padding: clamp(6px, 1vh, 12px) clamp(4px, 0.5vw, 8px) clamp(6px, 1vh, 10px);
+            width: 110px;
+            padding: 12px 8px 10px;
             border-radius: 12px;
             cursor: pointer;
             background: rgba(255,255,255,0.04);
@@ -519,9 +514,9 @@
 
         .btn {
             font-family: 'Orbitron', sans-serif;
-            font-size: clamp(14px, 2.5vw, 22px);
+            font-size: 22px;
             font-weight: 700;
-            padding: clamp(10px, 2vh, 18px) clamp(24px, 5vw, 45px);
+            padding: 18px 45px;
             border: none;
             border-radius: 10px;
             color: #fff;
@@ -582,8 +577,8 @@
         }
         
         .controls-info {
-            margin-top: clamp(15px, 3vh, 40px);
-            padding: clamp(10px, 1.5vh, 20px) clamp(15px, 2vw, 30px);
+            margin-top: 40px;
+            padding: 20px 30px;
             background: rgba(255, 255, 255, 0.03);
             border-radius: 10px;
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -594,26 +589,26 @@
         .controls-info .control-row {
             display: flex;
             justify-content: center;
-            gap: clamp(10px, 2vw, 30px);
+            gap: 30px;
             flex-wrap: wrap;
         }
         
         .control-item {
             display: flex;
             align-items: center;
-            gap: 6px;
-            font-size: clamp(10px, 1.2vw, 13px);
+            gap: 8px;
+            font-size: 13px;
             color: #888;
         }
         
         .control-key {
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: clamp(3px, 0.5vh, 5px) clamp(5px, 1vw, 10px);
+            padding: 5px 10px;
             border-radius: 5px;
-            font-size: clamp(9px, 1vw, 11px);
+            font-size: 11px;
             color: #aaa;
-            min-width: 24px;
+            min-width: 30px;
             text-align: center;
         }
         
@@ -725,7 +720,7 @@
             </div>
         </div>
 
-        <div id="drift-indicator"><span>🔥 DRIFT</span></div>
+        <div id="drift-indicator"><span>🔥 DRIFT x5</span></div>
         
         <button id="home-btn" onclick="goHome()">⌂ HOME</button>
         
@@ -811,14 +806,13 @@
         height = window.innerHeight;
         canvas.width = width;
         canvas.height = height;
-        cachedSkyGradient = null; // invalidate cached gradients
     }
     window.addEventListener('resize', resize);
     resize(); 
 
     const ROAD_WIDTH = 2000;
     const SEGMENT_LENGTH = 200;
-    const DRAW_DISTANCE = 100; 
+    const DRAW_DISTANCE = 150; 
     const FIELD_OF_VIEW = 100;
     const CAMERA_DEPTH = 1 / Math.tan((FIELD_OF_VIEW / 2) * Math.PI / 180);
     const CAMERA_HEIGHT = 1000; 
@@ -888,9 +882,8 @@
     let tireMarks = []; // Tire marks on road
     
     // Performance: limit particles and marks
-    const MAX_SMOKE_PARTICLES = 20;
-    const MAX_TIRE_MARKS = 80;
-    let tireMarkMap = new Map(); // segmentIndex -> array of marks for fast lookup
+    const MAX_SMOKE_PARTICLES = 30;
+    const MAX_TIRE_MARKS = 200;
     
     // Performance: cache gradients
     let cachedSkyGradient = null;
@@ -1139,7 +1132,6 @@
         lateralVelocity = 0;
         smokeParticles = [];
         tireMarks = [];
-        tireMarkMap.clear();
         raceFinished = false;
         raceElapsed = 0;
         inWater = false;
@@ -1275,10 +1267,9 @@
 
     function project(line, camX, camY, camZ) {
         line.scale = CAMERA_DEPTH / (line.z - camZ);
-        let halfW = Math.min(width, height * 1.8) / 2; // clamp projection to aspect ratio
-        line.screen.x = Math.round(width / 2 + line.scale * (line.x - camX) * halfW);
+        line.screen.x = Math.round((1 + line.scale * (line.x - camX)) * width / 2);
         line.screen.y = Math.round((1 - line.scale * (line.y - camY)) * height / 2);
-        line.screen.w = Math.round(line.scale * ROAD_WIDTH * halfW);
+        line.screen.w = Math.round(line.scale * ROAD_WIDTH * width / 2);
     }
 
     function drawPoly(ctx, color, x1, y1, x2, y2, x3, y3, x4, y4) {
@@ -1482,17 +1473,10 @@
         smokeParticles = smokeParticles.filter(p => p.life > 0);
         
         // Fade tire marks over time (faster fade for performance)
-        tireMarkMap.clear();
-        for(let j = tireMarks.length - 1; j >= 0; j--) {
-            tireMarks[j].life -= 0.012;
-            if (tireMarks[j].life <= 0) {
-                tireMarks.splice(j, 1);
-            } else {
-                let si = tireMarks[j].segmentIndex;
-                if (!tireMarkMap.has(si)) tireMarkMap.set(si, []);
-                tireMarkMap.get(si).push(tireMarks[j]);
-            }
+        for(let mark of tireMarks) {
+            mark.life -= 0.008;
         }
+        tireMarks = tireMarks.filter(m => m.life > 0);
     }
 
     function render() {
@@ -1583,22 +1567,25 @@
             drawPoly(ctx, grassColor, x1_right, y1_right, width, y1_right, width, y2_right, x2_right, y2_right);
             drawPoly(ctx, roadColor, x1_left, y1_left, x1_right, y1_right, x2_right, y2_right, x2_left, y2_left);
             
-            // Draw tire marks on this segment (Map lookup)
-            if (n < 60 && tireMarkMap.has(i)) {
-                let marks = tireMarkMap.get(i);
-                ctx.strokeStyle = '#000000';
-                for(let j = 0; j < marks.length; j++) {
-                    let mark = marks[j];
-                    let wheelOffset = 0.18;
-                    let xOffset = mark.leftMark ? -wheelOffset : wheelOffset;
-                    let markScreenX = segment.screen.x + (mark.offsetX + xOffset) * segment.screen.w;
-                    let nextMarkScreenX = nextSegment.screen.x + (mark.offsetX + xOffset) * nextSegment.screen.w;
-                    ctx.globalAlpha = mark.life * 0.7;
-                    ctx.lineWidth = Math.max(2, segment.screen.w * 0.015);
-                    ctx.beginPath();
-                    ctx.moveTo(markScreenX, segment.screen.y);
-                    ctx.lineTo(nextMarkScreenX, nextSegment.screen.y);
-                    ctx.stroke();
+            // Draw tire marks on this segment (optimized - batch by segment)
+            if (n < 80) { // Only draw tire marks on closer segments
+                for(let j = tireMarks.length - 1; j >= 0; j--) {
+                    let mark = tireMarks[j];
+                    if (mark.segmentIndex === i) {
+                        let wheelOffset = 0.18;
+                        let xOffset = mark.leftMark ? -wheelOffset : wheelOffset;
+                        let markScreenX = segment.screen.x + (mark.offsetX + xOffset) * segment.screen.w;
+                        let nextMarkScreenX = nextSegment.screen.x + (mark.offsetX + xOffset) * nextSegment.screen.w;
+                        
+                        ctx.globalAlpha = mark.life * 0.7;
+                        ctx.strokeStyle = '#000000';
+                        ctx.lineWidth = Math.max(2, segment.screen.w * 0.015);
+                        
+                        ctx.beginPath();
+                        ctx.moveTo(markScreenX, segment.screen.y);
+                        ctx.lineTo(nextMarkScreenX, nextSegment.screen.y);
+                        ctx.stroke();
+                    }
                 }
                 ctx.globalAlpha = 1.0;
             }
@@ -1608,6 +1595,52 @@
             
             drawPoly(ctx, curbColor, x1_left - w1, y1_left, x1_left, y1_left, x2_left, y2_left, x2_left - w2, y2_left);
             drawPoly(ctx, curbColor, x1_right, y1_right, x1_right + w1, y1_right, x2_right + w2, y2_right, x2_right, y2_right);
+            
+            // Guard rails on turns
+            if (Math.abs(segment.curve) > 0.5) {
+                let railHeight1 = segment.screen.w * 0.08;
+                let railHeight2 = nextSegment.screen.w * 0.08;
+                let railWidth1 = segment.screen.w * 0.02;
+                let railWidth2 = nextSegment.screen.w * 0.02;
+                
+                // Determine which side needs the rail (outside of turn)
+                let railColor = isAlt ? "#888888" : "#aaaaaa";
+                let railPostColor = "#666666";
+                
+                if (segment.curve > 0) {
+                    // Right turn - rail on left (outside)
+                    // Rail posts (every few segments)
+                    if ((Math.floor(startPos) + n) % 4 === 0 && n < 100) {
+                        drawPoly(ctx, railPostColor, 
+                            x1_left - w1 - railWidth1*2, y1_left,
+                            x1_left - w1, y1_left,
+                            x1_left - w1, y1_left - railHeight1,
+                            x1_left - w1 - railWidth1*2, y1_left - railHeight1);
+                    }
+                    // Horizontal rail bar
+                    drawPoly(ctx, railColor,
+                        x1_left - w1 - railWidth1, y1_left - railHeight1 * 0.6,
+                        x1_left - w1, y1_left - railHeight1 * 0.6,
+                        x2_left - w2, y2_left - railHeight2 * 0.6,
+                        x2_left - w2 - railWidth2, y2_left - railHeight2 * 0.6);
+                } else {
+                    // Left turn - rail on right (outside)
+                    // Rail posts
+                    if ((Math.floor(startPos) + n) % 4 === 0 && n < 100) {
+                        drawPoly(ctx, railPostColor,
+                            x1_right + w1, y1_right,
+                            x1_right + w1 + railWidth1*2, y1_right,
+                            x1_right + w1 + railWidth1*2, y1_right - railHeight1,
+                            x1_right + w1, y1_right - railHeight1);
+                    }
+                    // Horizontal rail bar
+                    drawPoly(ctx, railColor,
+                        x1_right + w1, y1_right - railHeight1 * 0.6,
+                        x1_right + w1 + railWidth1, y1_right - railHeight1 * 0.6,
+                        x2_right + w2 + railWidth2, y2_right - railHeight2 * 0.6,
+                        x2_right + w2, y2_right - railHeight2 * 0.6);
+                }
+            }
                       
             if (isAlt) {
                 let lw1 = segment.screen.w * 0.025;
@@ -1964,8 +1997,7 @@
 
         ctx.save();
         ctx.translate(cx, cy + carBounce + sinkOffset);
-        let carScale = Math.min(width, height) / 500; // scale car to screen
-        ctx.scale(carScale, carScale);
+        ctx.scale(1.3, 1.3);
 
         // Clip to hide bottom of car when submerging
         if (submergeProgress > 0) {
