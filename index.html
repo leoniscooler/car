@@ -279,11 +279,38 @@
             background: radial-gradient(ellipse at center, rgba(20, 0, 40, 0.95) 0%, rgba(0, 0, 0, 0.98) 100%);
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
             color: white;
             z-index: 10;
             backdrop-filter: blur(8px);
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 60px 20px;
+        }
+        
+        #start-screen::-webkit-scrollbar {
+            width: 12px;
+        }
+        
+        #start-screen::-webkit-scrollbar-track {
+            background: rgba(0, 255, 255, 0.05);
+        }
+        
+        #start-screen::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #0ff, #f0f);
+            border-radius: 6px;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+        
+        #start-screen::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, #00ffff, #ff00ff);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
+        }
+        
+        /* Firefox scrollbar */
+        #start-screen {
+            scrollbar-color: linear-gradient(180deg, #0ff, #f0f) rgba(0, 255, 255, 0.05);
+            scrollbar-width: thin;
         }
         
         /* Animated background lines */
