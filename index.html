@@ -891,7 +891,6 @@
         OFF_ROAD_DECEL = BASE_OFF_ROAD_DECEL;
         HANDLING_MULT = v.handlingMult;
     }
-    applyVehicleStats();
 
     let position = 0;
     let playerX = 0;
@@ -1143,6 +1142,9 @@
     }
 
     function startGame(difficulty) {
+        // Cancel any existing game loop to prevent stacking
+        if (loopId) { cancelAnimationFrame(loopId); loopId = 0; }
+        isPlaying = false;
         startScreen.style.display = 'none';
         finishOverlay.classList.remove('show');
         applyVehicleStats();
@@ -2119,8 +2121,9 @@
     }
 
     let lastTime = 0;
+    let loopId = 0;
     function loop(time) {
-        if(!isPlaying) return;
+        if(!isPlaying) { loopId = 0; return; }
         
         let dt = Math.min((time - lastTime) / 1000, 0.1);
         if (dt <= 0) dt = 1/60;
@@ -2128,7 +2131,7 @@
 
         update(dt);
         render();
-        requestAnimationFrame(loop);
+        loopId = requestAnimationFrame(loop);
     }
 
 </script>
