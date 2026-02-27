@@ -747,7 +747,7 @@
             </div>
         </div>
 
-        <div id="drift-indicator"><span>🔥 DRIFT x5</span></div>
+        <div id="drift-indicator"><span>🔥 DRIFT</span></div>
         
         <button id="home-btn" onclick="goHome()">⌂ HOME</button>
         
@@ -859,8 +859,8 @@
         },
         racecar: {
             name: 'RACE CAR',
-            speedMult: 1.3, accelMult: 1.15, handlingMult: 0.85, brakeMult: 1.1,
-            stats: { spd: 5, acc: 4, hnd: 3, brk: 4 }
+            speedMult: 1.6, accelMult: 1.4, handlingMult: 0.425, brakeMult: 1.1,
+            stats: { spd: 5, acc: 5, hnd: 1, brk: 4 }
         },
         muscle: {
             name: 'MUSCLE',
@@ -872,10 +872,10 @@
             speedMult: 0.7, accelMult: 0.65, handlingMult: 0.9, brakeMult: 1.3,
             stats: { spd: 2, acc: 2, hnd: 3, brk: 5 }
         },
-        supercar: {
-            name: 'SUPER',
-            speedMult: 1.25, accelMult: 1.0, handlingMult: 1.3, brakeMult: 1.0,
-            stats: { spd: 5, acc: 3, hnd: 5, brk: 3 }
+        motorcycle: {
+            name: 'MOTORCYCLE',
+            speedMult: 1.0, accelMult: 1.35, handlingMult: 1.4, brakeMult: 0.8,
+            stats: { spd: 3, acc: 5, hnd: 5, brk: 2 }
         }
     };
 
@@ -901,6 +901,8 @@
     let cameraBank = 0;
     let steeringInput = 0; // Gradual steering input
     let lateralVelocity = 0; // Sideways momentum
+    let offRoadPenaltyUntil = 0; // Timestamp when off-road slowdown ends
+    let wasOffRoad = false; // Track if already off-road (trigger once)
     let carColor = localStorage.getItem('neonRacerCarColor') || 'red'; // Selected car color
     let wheelRotation = 0; // Wheel animation
     let lines = [];
@@ -1158,6 +1160,8 @@
         carTilt = 0;
         carBounce = 0;
         steeringInput = 0;
+        offRoadPenaltyUntil = 0;
+        wasOffRoad = false;
         lateralVelocity = 0;
         smokeParticles = [];
         tireMarks = [];
@@ -1423,7 +1427,20 @@
         playerX -= centrifugal;
 
         if ((playerX < -1 || playerX > 1)) {
-            if (speed > 500) speed += OFF_ROAD_DECEL * dt * 60;
+            if (!wasOffRoad) {
+                // Just went off road — trigger 1-second penalty
+                wasOffRoad = true;
+                offRoadPenaltyUntil = performance.now() + 1000;
+                speed *= 0.3; // Immediate speed cut
+            }
+        } else {
+            wasOffRoad = false;
+        }
+
+        // Off-road penalty: cap speed for 1 second after going off track
+        if (offRoadPenaltyUntil > 0 && performance.now() < offRoadPenaltyUntil) {
+            let penaltyMaxSpeed = MAX_SPEED * 0.25;
+            if (speed > penaltyMaxSpeed) speed = penaltyMaxSpeed;
         }
 
         // Check finish line crossing
@@ -1768,7 +1785,7 @@
         else if (type === 'racecar') drawShapeRacecar(c, cc);
         else if (type === 'muscle') drawShapeMuscle(c, cc);
         else if (type === 'truck') drawShapeTruck(c, cc);
-        else if (type === 'supercar') drawShapeSupercar(c, cc);
+        else if (type === 'motorcycle') drawShapeMotorcycle(c, cc);
         else drawShapeSport(c, cc);
     }
 
@@ -1957,52 +1974,78 @@
         c.fillStyle = "#222"; c.fillRect(-43,11,2,8);
     }
 
-    // ---- SUPER CAR (Lambo-style, very low, angular, sharp) ----
-    function drawShapeSupercar(c, cc) {
-        // Low profile wheels
+    // ---- MOTORCYCLE (sport bike, two wheels, rider silhouette) ----
+    function drawShapeMotorcycle(c, cc) {
+        // Two big wheels (front and rear only)
         c.fillStyle = '#1a1a1a';
-        c.beginPath(); c.arc(-34,10,6,0,Math.PI*2); c.arc(34,10,6,0,Math.PI*2); c.arc(-30,-10,5.5,0,Math.PI*2); c.arc(30,-10,5.5,0,Math.PI*2); c.fill();
-        c.fillStyle = '#777';
-        c.beginPath(); c.arc(-34,10,3.5,0,Math.PI*2); c.arc(34,10,3.5,0,Math.PI*2); c.arc(-30,-10,3,0,Math.PI*2); c.arc(30,-10,3,0,Math.PI*2); c.fill();
+        c.beginPath(); c.arc(0,14,9,0,Math.PI*2); c.fill(); // rear wheel
+        c.beginPath(); c.arc(0,-24,8,0,Math.PI*2); c.fill(); // front wheel
+        // Wheel rims
+        c.fillStyle = '#888';
+        c.beginPath(); c.arc(0,14,5,0,Math.PI*2); c.fill();
+        c.beginPath(); c.arc(0,-24,4.5,0,Math.PI*2); c.fill();
+        // Spokes
+        c.strokeStyle = '#aaa'; c.lineWidth = 0.8;
+        for (let a = 0; a < Math.PI*2; a += Math.PI/3) {
+            c.beginPath(); c.moveTo(Math.cos(a)*2, 14+Math.sin(a)*2); c.lineTo(Math.cos(a)*8, 14+Math.sin(a)*8); c.stroke();
+            c.beginPath(); c.moveTo(Math.cos(a)*2, -24+Math.sin(a)*2); c.lineTo(Math.cos(a)*7, -24+Math.sin(a)*7); c.stroke();
+        }
         // Shadow
-        let sg = c.createRadialGradient(0,22,5,0,22,48); sg.addColorStop(0,"rgba(0,0,0,0.6)"); sg.addColorStop(0.5,"rgba(0,0,0,0.3)"); sg.addColorStop(1,"rgba(0,0,0,0)");
-        c.fillStyle = sg; c.beginPath(); c.ellipse(0,22,48,9,0,0,Math.PI*2); c.fill();
-        // Very low angular body
-        let bg = c.createLinearGradient(-40,12,40,12); bg.addColorStop(0,cc.main[0]); bg.addColorStop(0.3,cc.main[1]); bg.addColorStop(0.5,cc.main[2]); bg.addColorStop(0.7,cc.main[1]); bg.addColorStop(1,cc.main[0]);
+        let sg = c.createRadialGradient(0,22,3,0,22,30); sg.addColorStop(0,"rgba(0,0,0,0.5)"); sg.addColorStop(0.6,"rgba(0,0,0,0.2)"); sg.addColorStop(1,"rgba(0,0,0,0)");
+        c.fillStyle = sg; c.beginPath(); c.ellipse(0,22,28,6,0,0,Math.PI*2); c.fill();
+        // Frame / body (narrow bike body connecting wheels)
+        let bg = c.createLinearGradient(-8,0,8,0); bg.addColorStop(0,cc.main[0]); bg.addColorStop(0.5,cc.main[2]); bg.addColorStop(1,cc.main[0]);
         c.fillStyle = bg;
-        c.beginPath(); c.moveTo(-40,14); c.lineTo(40,14); c.lineTo(38,-6); c.lineTo(20,-16); c.lineTo(-20,-16); c.lineTo(-38,-6); c.closePath(); c.fill();
-        c.strokeStyle = cc.dark; c.lineWidth=1.5; c.stroke();
-        // Sharp nose (wedge)
-        let ng = c.createLinearGradient(0,-30,0,-16); ng.addColorStop(0,cc.main[1]); ng.addColorStop(1,cc.main[0]);
-        c.fillStyle = ng; c.beginPath(); c.moveTo(-20,-16); c.lineTo(20,-16); c.lineTo(10,-30); c.lineTo(-10,-30); c.closePath(); c.fill();
-        c.strokeStyle = cc.dark; c.lineWidth=1; c.stroke();
-        // Angular windshield
-        let gg = c.createLinearGradient(0,-20,0,-8); gg.addColorStop(0,"rgba(10,10,25,0.95)"); gg.addColorStop(0.3,"rgba(30,30,50,0.85)"); gg.addColorStop(1,"rgba(10,10,25,0.7)");
-        c.fillStyle = gg; c.beginPath(); c.moveTo(-22,-8); c.lineTo(22,-8); c.lineTo(16,-18); c.lineTo(-16,-18); c.closePath(); c.fill();
-        c.fillStyle = "rgba(255,255,255,0.3)"; c.fillRect(-14,-16,10,3);
-        // Air intakes (side scoops)
-        c.fillStyle = '#111';
-        c.beginPath(); c.moveTo(-38,-2); c.lineTo(-30,-2); c.lineTo(-28,4); c.lineTo(-38,4); c.closePath(); c.fill();
-        c.beginPath(); c.moveTo(38,-2); c.lineTo(30,-2); c.lineTo(28,4); c.lineTo(38,4); c.closePath(); c.fill();
-        // Rear diffuser with fins
-        c.fillStyle = '#111';
-        c.fillRect(-36,12,72,3);
-        for(let i=-30;i<=30;i+=10){ c.fillRect(i,12,2,4); }
-        // Small rear spoiler lip
-        c.fillStyle = cc.dark; c.fillRect(-36,10,72,2);
-        // Sharp LED headlights
+        c.beginPath(); c.moveTo(-8,12); c.lineTo(-10,-4); c.lineTo(-6,-18); c.lineTo(6,-18); c.lineTo(10,-4); c.lineTo(8,12); c.closePath(); c.fill();
+        c.strokeStyle = cc.dark; c.lineWidth = 1; c.stroke();
+        // Fuel tank (wider middle section)
+        let tg = c.createLinearGradient(-12,-2,12,-2); tg.addColorStop(0,cc.main[0]); tg.addColorStop(0.5,cc.main[1]); tg.addColorStop(1,cc.main[0]);
+        c.fillStyle = tg;
+        c.beginPath(); c.moveTo(-12,-2); c.quadraticCurveTo(-14,-8,-8,-12); c.lineTo(8,-12); c.quadraticCurveTo(14,-8,12,-2); c.quadraticCurveTo(14,2,8,4); c.lineTo(-8,4); c.quadraticCurveTo(-14,2,-12,-2); c.closePath(); c.fill();
+        c.strokeStyle = cc.dark; c.lineWidth = 0.8; c.stroke();
+        // Front fairing / windshield
+        let fg = c.createLinearGradient(0,-30,0,-18); fg.addColorStop(0,"rgba(10,10,25,0.9)"); fg.addColorStop(1,"rgba(30,30,60,0.6)");
+        c.fillStyle = fg;
+        c.beginPath(); c.moveTo(-6,-18); c.lineTo(6,-18); c.lineTo(4,-28); c.lineTo(-4,-28); c.closePath(); c.fill();
+        // Headlight
         c.fillStyle = "#ffffdd";
-        c.beginPath(); c.moveTo(-18,-18); c.lineTo(-10,-18); c.lineTo(-14,-14); c.lineTo(-20,-14); c.closePath(); c.fill();
-        c.beginPath(); c.moveTo(18,-18); c.lineTo(10,-18); c.lineTo(14,-14); c.lineTo(20,-14); c.closePath(); c.fill();
-        // DRL strip
-        c.strokeStyle = "#ffffdd"; c.lineWidth=1;
-        c.beginPath(); c.moveTo(-20,-15); c.lineTo(-12,-19); c.stroke();
-        c.beginPath(); c.moveTo(20,-15); c.lineTo(12,-19); c.stroke();
-        // Brake lights (thin strip)
-        c.fillStyle = "#aa2222"; c.fillRect(-34,10,68,2);
-        // Central exhaust cluster
-        c.fillStyle = "#222"; c.beginPath(); c.arc(-10,16,3,0,Math.PI*2); c.arc(0,16,3,0,Math.PI*2); c.arc(10,16,3,0,Math.PI*2); c.fill();
-        c.fillStyle = "#111"; c.beginPath(); c.arc(-10,16,1.8,0,Math.PI*2); c.arc(0,16,1.8,0,Math.PI*2); c.arc(10,16,1.8,0,Math.PI*2); c.fill();
+        c.beginPath(); c.arc(0,-26,3,0,Math.PI*2); c.fill();
+        c.fillStyle = "rgba(255,255,200,0.4)";
+        c.beginPath(); c.arc(0,-26,5,0,Math.PI*2); c.fill();
+        // Rider silhouette (torso + helmet)
+        c.fillStyle = '#222';
+        // Torso (leaning forward)
+        c.beginPath(); c.moveTo(-7,-4); c.lineTo(-5,-14); c.lineTo(5,-14); c.lineTo(7,-4); c.lineTo(5,4); c.lineTo(-5,4); c.closePath(); c.fill();
+        // Arms (gripping handlebars)
+        c.strokeStyle = '#222'; c.lineWidth = 3;
+        c.beginPath(); c.moveTo(-6,-10); c.lineTo(-8,-16); c.stroke();
+        c.beginPath(); c.moveTo(6,-10); c.lineTo(8,-16); c.stroke();
+        // Helmet
+        c.fillStyle = '#111';
+        c.beginPath(); c.arc(0,-16,6,0,Math.PI*2); c.fill();
+        // Helmet visor
+        c.fillStyle = 'rgba(80,80,120,0.8)';
+        c.beginPath(); c.arc(0,-17,4, -0.5, 0.5); c.lineTo(0,-14); c.closePath(); c.fill();
+        // Helmet highlight
+        c.fillStyle = 'rgba(255,255,255,0.15)';
+        c.beginPath(); c.arc(-1,-18,3,0,Math.PI*2); c.fill();
+        // Exhaust pipe (side)
+        c.fillStyle = '#444';
+        c.fillRect(8,4,4,10);
+        c.fillStyle = '#333';
+        c.beginPath(); c.arc(10,14,2.5,0,Math.PI*2); c.fill();
+        c.fillStyle = '#222';
+        c.beginPath(); c.arc(10,14,1.5,0,Math.PI*2); c.fill();
+        // Tail light
+        c.fillStyle = '#cc2222';
+        c.beginPath(); c.arc(0,12,2.5,0,Math.PI*2); c.fill();
+        // Forks (front suspension lines)
+        c.strokeStyle = '#666'; c.lineWidth = 1.5;
+        c.beginPath(); c.moveTo(-3,-18); c.lineTo(-2,-24); c.stroke();
+        c.beginPath(); c.moveTo(3,-18); c.lineTo(2,-24); c.stroke();
+        // Chain/swingarm hint
+        c.strokeStyle = '#555'; c.lineWidth = 1;
+        c.beginPath(); c.moveTo(0,6); c.lineTo(0,12); c.stroke();
     }
 
     function drawCar() {
