@@ -903,6 +903,7 @@
     let lateralVelocity = 0; // Sideways momentum
     let offRoadPenaltyUntil = 0; // Timestamp when off-road slowdown ends
     let wasOffRoad = false; // Track if already off-road (trigger once)
+    let offRoadStartTime = 0; // When the car first went off-road
     let carColor = localStorage.getItem('neonRacerCarColor') || 'red'; // Selected car color
     let wheelRotation = 0; // Wheel animation
     let lines = [];
@@ -1162,6 +1163,7 @@
         steeringInput = 0;
         offRoadPenaltyUntil = 0;
         wasOffRoad = false;
+        offRoadStartTime = 0;
         lateralVelocity = 0;
         smokeParticles = [];
         tireMarks = [];
@@ -1428,16 +1430,25 @@
 
         if ((playerX < -1 || playerX > 1)) {
             if (!wasOffRoad) {
-                // Just went off road — trigger 1-second penalty
+                // Just went off road — trigger penalty
                 wasOffRoad = true;
-                offRoadPenaltyUntil = performance.now() + 1000;
+                offRoadStartTime = performance.now();
+                offRoadPenaltyUntil = performance.now() + 250;
                 speed *= 0.3; // Immediate speed cut
             }
+            // Every 2 seconds off-road, double the slowdown
+            let timeOffRoad = performance.now() - offRoadStartTime;
+            let doublings = Math.floor(timeOffRoad / 2000);
+            let penaltyMult = Math.pow(2, doublings); // 1x, 2x, 4x, 8x...
+            let penaltyMaxSpeed = MAX_SPEED * 0.25 / penaltyMult;
+            if (penaltyMaxSpeed < 50) penaltyMaxSpeed = 50; // minimum floor
+            if (speed > penaltyMaxSpeed) speed = penaltyMaxSpeed;
         } else {
             wasOffRoad = false;
+            offRoadStartTime = 0;
         }
 
-        // Off-road penalty: cap speed for 1 second after going off track
+        // Off-road penalty lingers briefly after returning to track
         if (offRoadPenaltyUntil > 0 && performance.now() < offRoadPenaltyUntil) {
             let penaltyMaxSpeed = MAX_SPEED * 0.25;
             if (speed > penaltyMaxSpeed) speed = penaltyMaxSpeed;
